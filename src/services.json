@@ -1,0 +1,7 @@
+{
+  "fetchAllProducts": "/api/getAllProducts",
+  "addProduct": "/api/addProduct",
+  "deleteProduct": "/api/deleteProduct",
+  "getProduct": "/api/getProduct",
+  "updateProduct": "/api/updateProduct"
+}
