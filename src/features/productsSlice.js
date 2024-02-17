@@ -98,11 +98,14 @@ export const productsSlice = createSlice({
         state.status = "loading";
       })
       .addCase(fetchProductsAsync.fulfilled, (state, { payload }) => {
-        return {
-          ...state,
-          productsList: payload.data,
-          rowsCount: payload.rowsCount,
-        };
+        let newCols = [...state.productsList];
+        newCols = newCols.concat(payload.data);
+        state.productsList = payload.data;
+        // return {
+        //   ...state,
+        //   productsList: newCols,
+        //   rowsCount: payload.rowsCount,
+        // };
       })
       .addCase(fetchProductsAsync.rejected, (state, { payload }) => {
         errorToast("Failed fetch products");
