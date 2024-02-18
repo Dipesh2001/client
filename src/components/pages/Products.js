@@ -16,6 +16,7 @@ import { productSchema } from "../../app/schema";
 
 const Products = () => {
   const [rowData, setRowData] = useState([]);
+  const [changeState, setChangeState] = useState(false);
   const [inputRow, setInputRow] = useState({
     title: "",
     rating: "",
@@ -25,6 +26,7 @@ const Products = () => {
     category: "",
     price: "",
   });
+
   // const [pinnedTopRowData, setPinnedTopRowData] = useState([
   //   {
   //     title: "",
@@ -38,7 +40,19 @@ const Products = () => {
   // ]);
 
   const navigate = useNavigate();
-  const inputRef = useRef(null);
+  // const pinnedToDataRowRef = useRef(null);
+  const inputRowRef = useRef([
+    {
+      title: "",
+      rating: "",
+      description: "",
+      stock: "",
+      brand: "",
+      category: "",
+      price: "",
+    },
+  ]);
+
   const {
     values,
     touched,
@@ -65,7 +79,7 @@ const Products = () => {
   const { productsList, editProductData } = useSelector(
     (state) => state.products
   );
-  const rowDataRef = useRef([]);
+
   const dispatch = useDispatch();
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -173,81 +187,126 @@ const Products = () => {
     );
   };
 
-  function hasEmptyValue(obj) {
-    for (const value of Object.values(obj)) {
-      if (
-        value === "" ||
-        value === null ||
-        value === undefined ||
-        Number.isNaN(value)
-      ) {
-        return true;
-      }
-    }
-    return false;
+  function hasNonEmptyValue(obj) {
+    return Object.values(obj).some(
+      (value) => typeof value === "string" && value.trim() !== ""
+    );
   }
 
-  const handleCustomSubmit = () => {
-    if (!hasEmptyValue(inputRow)) {
-      dispatch(addProductAsync(inputRow));
-    }
-  };
-
-  const placeholderRenderer = ({ value, colDef, node }) => {
-    return value && node.rowPinned !== "top" ? (
-      value
-    ) : (
-      <div>
-        <input
-          type="text"
-          placeholder={
-            colDef.field[0].toUpperCase() + colDef.field.slice(1) + "..."
-          }
-          defaultValue={inputRow[colDef.field]}
-          id={colDef.field}
-          name={colDef.field}
-          onBlur={(e) => {
-            setInputRow({ ...inputRow, [colDef.field]: e.target.value });
-          }}
-        />
-        <span className="text-danger">
-          {touched.title && errors.title ? <div>{errors.title}</div> : null}
-        </span>
-      </div>
-    );
-  };
-
-  // const placeholderRenderer = useMemo(() => {
-  //   console.log("rendered");
-  //   return ({ value, colDef, node }) => {
-  //     return value && node.rowPinned !== "top" ? (
-  //       value
-  //     ) : (
-  //       <div>
-  //         <input
-  //           type="text"
-  //           placeholder={
-  //             colDef.field[0].toUpperCase() + colDef.field.slice(1) + "..."
+  // const placeholderRenderer = ({ value, colDef, node }) => {
+  //   const index = node.id.split("-")[1];
+  //   return value && node.rowPinned !== "top" ? (
+  //     value
+  //   ) : (
+  //     <div>
+  //       <input
+  //         type="text"
+  //         placeholder={
+  //           colDef.field[0].toUpperCase() + colDef.field.slice(1) + "..."
+  //         }
+  //         defaultValue={inputRowRef.current[colDef.field]}
+  //         id={colDef.field}
+  //         name={colDef.field}
+  //         onChange={(e) => {
+  //           let newObj = {
+  //             ...inputRowRef.current[index],
+  //             [colDef.field]: e.target.value,
+  //           };
+  //           inputRowRef.current[index] = newObj;
+  //         }}
+  //         onBlur={() => {
+  //           // console.log(
+  //           //   hasNonEmptyValue(
+  //           //     inputRowRef.current[inputRowRef.current.length - 1]
+  //           //   )
+  //           // );
+  //           if (
+  //             hasNonEmptyValue(
+  //               inputRowRef.current[inputRowRef.current.length - 1]
+  //             )
+  //           ) {
+  //             inputRowRef.current = [
+  //               ...inputRowRef.current,
+  //               {
+  //                 title: "",
+  //                 rating: "",
+  //                 description: "",
+  //                 stock: "",
+  //                 brand: "",
+  //                 category: "",
+  //                 price: "",
+  //               },
+  //             ];
+  //             console.log(inputRowRef.current);
+  //             setChangeState(!changeState);
   //           }
-  //           value={values[colDef.field]}
-  //           onChange={(e) => {
-  //             handleChange(e);
-  //             inputRef.current = e.target;
-  //           }}
-  //           id={colDef.field}
-  //           name={colDef.field}
-  //         />
-  //         <span className="text-danger">
-  //           {touched.title && errors.title ? <div>{errors.title}</div> : null}
-  //         </span>
-  //       </div>
-  //     );
-  //   };
-  // }, [values, touched, errors, handleChange]);
+  //         }}
+  //       />
+  //       <span className="text-danger">
+  //         {touched.title && errors.title ? <div>{errors.title}</div> : null}
+  //       </span>
+  //     </div>
+  //   );
+  // };
 
-  useEffect(() => {
-    inputRef.current && inputRef.current.focus();
-  }, [inputRef.current]);
+  const placeholderRenderer = useMemo(() => {
+    console.log("rendered");
+    return ({ value, colDef, node }) => {
+      const index = node.id.split("-")[1];
+      return value && node.rowPinned !== "top" ? (
+        value
+      ) : (
+        <div>
+          <input
+            type="text"
+            placeholder={
+              colDef.field[0].toUpperCase() + colDef.field.slice(1) + "..."
+            }
+            // defaultValue={inputRowRef.current[colDef.field]}
+            id={colDef.field}
+            name={colDef.field}
+            value={inputRowRef.current[colDef.field]}
+            onChange={(e) => {
+              let newObj = {
+                ...inputRowRef.current[index],
+                [colDef.field]: e.target.value,
+              };
+              inputRowRef.current[index] = newObj;
+            }}
+            onBlur={() => {
+              if (
+                hasNonEmptyValue(
+                  inputRowRef.current[inputRowRef.current.length - 1]
+                )
+              ) {
+                inputRowRef.current = [
+                  ...inputRowRef.current,
+                  {
+                    title: "",
+                    rating: "",
+                    description: "",
+                    stock: "",
+                    brand: "",
+                    category: "",
+                    price: "",
+                  },
+                ];
+                console.log(inputRowRef.current);
+                setChangeState(!changeState);
+              }
+            }}
+          />
+          <span className="text-danger">
+            {touched.title && errors.title ? <div>{errors.title}</div> : null}
+          </span>
+        </div>
+      );
+    };
+  }, [inputRowRef]);
+
+  // useEffect(() => {
+  //   inputRef.current && inputRef.current.focus();
+  // }, [inputRef.current]);
 
   const columnDefs = [
     {
@@ -339,7 +398,7 @@ const Products = () => {
         onPaginationChanged={(event) =>
           onPageChanged(event.api.paginationGetCurrentPage() + 1)
         }
-        pinnedTopRowData={[inputRow]}
+        pinnedTopRowData={inputRowRef.current}
         enableBrowserTooltips={true}
         suppressRowClickSelection={true}
         floatingFilter={true}
