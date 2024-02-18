@@ -16,6 +16,8 @@ import { productSchema } from "../../app/schema";
 
 const Products = () => {
   const [rowData, setRowData] = useState([]);
+  const [errors, setErrors] = useState([]);
+
   const [changeState, setChangeState] = useState(false);
   const [inputRow, setInputRow] = useState({
     title: "",
@@ -52,15 +54,17 @@ const Products = () => {
       price: "",
     },
   ]);
+  const errorsRef = useRef([]);
 
   const {
     values,
     touched,
     setValues,
-    errors,
+    // errors,
     handleChange,
     handleSubmit,
     handleBlur,
+    // setErrors,
   } = useFormik({
     initialValues: inputRow,
     validationSchema: productSchema,
@@ -151,7 +155,7 @@ const Products = () => {
       id: product._id,
       // Add more fields or modify existing fields as needed
     }));
-  }, [productsList]);
+  }, [productsList, errors]);
 
   useEffect(() => {
     if (Object.keys(editProductData).length > 0) {
@@ -204,9 +208,15 @@ const Products = () => {
   //         placeholder={
   //           colDef.field[0].toUpperCase() + colDef.field.slice(1) + "..."
   //         }
-  //         defaultValue={inputRowRef.current[colDef.field]}
   //         id={colDef.field}
   //         name={colDef.field}
+  //         style={{
+  //           border: errors?.[index]?.[colDef.field] ? "1px solid red" : null,
+  //           width: "100%",
+  //           height: "100%",
+  //         }}
+  //         value={inputRowRef.current[colDef.field]}
+  //         // defaultValue={inputRowRef.current[colDef.field]}
   //         onChange={(e) => {
   //           let newObj = {
   //             ...inputRowRef.current[index],
@@ -214,43 +224,57 @@ const Products = () => {
   //           };
   //           inputRowRef.current[index] = newObj;
   //         }}
+  //         data-toggle="tooltip"
+  //         data-placement="bottom"
+  //         title={errors?.[index]?.[colDef.field]}
   //         onBlur={() => {
-  //           // console.log(
-  //           //   hasNonEmptyValue(
-  //           //     inputRowRef.current[inputRowRef.current.length - 1]
-  //           //   )
-  //           // );
-  //           if (
-  //             hasNonEmptyValue(
-  //               inputRowRef.current[inputRowRef.current.length - 1]
-  //             )
-  //           ) {
-  //             inputRowRef.current = [
-  //               ...inputRowRef.current,
-  //               {
-  //                 title: "",
-  //                 rating: "",
-  //                 description: "",
-  //                 stock: "",
-  //                 brand: "",
-  //                 category: "",
-  //                 price: "",
-  //               },
-  //             ];
-  //             console.log(inputRowRef.current);
-  //             setChangeState(!changeState);
-  //           }
+  //           handleCustomSubmit(inputRowRef.current[index], index);
   //         }}
   //       />
-  //       <span className="text-danger">
-  //         {touched.title && errors.title ? <div>{errors.title}</div> : null}
-  //       </span>
+  //       {console.log({ errors })}
   //     </div>
   //   );
   // };
 
+  const checkErrors = (vals) => {
+    let err = {};
+
+    Object.keys(vals).map((ele) => {
+      if (vals[ele].trim() === "") {
+        err[ele] = `${ele} is required`;
+      }
+    });
+    return err;
+  };
+  const handleCustomSubmit = (values, index) => {
+    let check = checkErrors(values);
+    if (Object.keys(check).length > 0) {
+      setErrors((prevErrors) => {
+        // Create a copy of the errors array
+        const newErrors = [...prevErrors];
+        // Update errors at index 4
+        newErrors[index] = check;
+        return newErrors;
+      });
+
+      // let newErrors = [...errorsRef.current];
+      // newErrors[index] = check;
+      // errorsRef.current = newErrors;
+
+      // errorsRef.current[index] = newObj;
+
+      // errorsRef.current = [...errorsRef.current,[index]]
+
+      // const newErrors = [...errors];
+      // newErrors[index] = check;
+      // console.log({ newErrors });
+      // setErrors(newErrors);
+    } else {
+      alert("submit");
+    }
+  };
+
   const placeholderRenderer = useMemo(() => {
-    console.log("rendered");
     return ({ value, colDef, node }) => {
       const index = node.id.split("-")[1];
       return value && node.rowPinned !== "top" ? (
@@ -262,9 +286,13 @@ const Products = () => {
             placeholder={
               colDef.field[0].toUpperCase() + colDef.field.slice(1) + "..."
             }
-            // defaultValue={inputRowRef.current[colDef.field]}
             id={colDef.field}
             name={colDef.field}
+            style={{
+              border: errors?.[index]?.[colDef.field] ? "1px solid red" : null,
+              width: "100%",
+              height: "100%",
+            }}
             value={inputRowRef.current[colDef.field]}
             onChange={(e) => {
               let newObj = {
@@ -273,36 +301,17 @@ const Products = () => {
               };
               inputRowRef.current[index] = newObj;
             }}
+            data-toggle="tooltip"
+            data-placement="bottom"
+            title={errors?.[index]?.[colDef.field]}
             onBlur={() => {
-              if (
-                hasNonEmptyValue(
-                  inputRowRef.current[inputRowRef.current.length - 1]
-                )
-              ) {
-                inputRowRef.current = [
-                  ...inputRowRef.current,
-                  {
-                    title: "",
-                    rating: "",
-                    description: "",
-                    stock: "",
-                    brand: "",
-                    category: "",
-                    price: "",
-                  },
-                ];
-                console.log(inputRowRef.current);
-                setChangeState(!changeState);
-              }
+              // handleCustomSubmit(inputRowRef.current[index], index);
             }}
           />
-          <span className="text-danger">
-            {touched.title && errors.title ? <div>{errors.title}</div> : null}
-          </span>
         </div>
       );
     };
-  }, [inputRowRef]);
+  }, [inputRowRef.current]);
 
   // useEffect(() => {
   //   inputRef.current && inputRef.current.focus();
